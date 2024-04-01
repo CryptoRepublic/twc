@@ -1,0 +1,96 @@
+<!DOCTYPE html> 
+<html lang="it"> 
+<head> <meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>TrustWatch</title> 
+<style> 
+
+body { 
+	margin: 0; 
+	padding: 0; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    flex-direction: column; 
+    height: 100vh; 
+    font-family: Arial, sans-serif; }
+
+h1 {
+        margin-top: 20px;
+    }
+
+    #image-container {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        max-height: 400px;
+    }
+
+    #label-container {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    #label-container div {
+        margin-bottom: 5px;
+    }
+</style>
+</head> 
+  <body> 
+    <h1>TrustWatch Checker</h1> 
+    <input type="file" id="image-input" accept="image/*" capture> 
+    <div id="image-container"></div> <div id="label-container"></div> 
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script> 
+    <script> const URL = "https://teachablemachine.withgoogle.com/models/GkT4xojds/"; let model, labelContainer, maxPredictions, imageElement;
+
+async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        imageElement = document.createElement("img");
+        imageElement.id = "input-image";
+        imageElement.crossOrigin = "anonymous";
+        imageElement.style.width = "224px";
+        imageElement.style.height = "224px";
+        document.getElementById("image-container").appendChild(imageElement);
+
+        labelContainer = document.getElementById("label-container");
+
+        document.getElementById("image-input").addEventListener("change", handleImageInput);
+    }
+
+    function handleImageInput(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            imageElement.src = event.target.result;
+            predict();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function predict() {
+        const prediction = await model.predict(imageElement);
+        appendResults(prediction);
+    }
+
+    // append elements to the DOM
+    function appendResults(labelProbs) {
+        labelContainer.innerHTML = '';
+        for (let i = 0; i < maxPredictions; i++) {
+            const div = document.createElement('div');
+            const classPrediction =
+                labelProbs[i].className + ": " + labelProbs[i].probability.toFixed(2);
+            div.innerText = classPrediction;
+            labelContainer.appendChild(div);
+        }
+    }
+
+    init();
+</script>
+</body> 
+</html>
